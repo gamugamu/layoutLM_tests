@@ -1,0 +1,6 @@
+uvicorn
+fastapi
+transformers
+torch
+accelerate
+jupyterlab

@@ -1,0 +1,50 @@
+version: '3.8'
+services:
+  test:
+    image: nvidia/cuda:12.2.0-base-ubuntu22.04
+    command: nvidia-smi
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+  api:
+    build: .
+    image: cuda9_train:latest
+    mem_limit: 8g
+    ports:
+      - 8000:8000  # FastAPI port
+      - 8888:8888  # JupyterLab port
+    volumes:
+      - type: bind
+        source: .
+        target: /app/
+      - type: volume
+        source: checkpoints
+        target: /app/checkpoints
+      - ./logs:/app/logs  # Monter le répertoire des logs pour TensorBoard
+      - ./results:/app/results  # Monter le répertoire des résultats
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all  # Rendre tous les GPU visibles
+  
+
+  tensorboard:
+    image: tensorflow/tensorflow:latest  # Utiliser l'image TensorFlow qui inclut TensorBoard
+    volumes:
+      - ./logs:/logs  # Monter le répertoire des logs pour TensorBoard
+    ports:
+      - "6006:6006"  # Exposer le port de TensorBoard
+    command: ["tensorboard", "--logdir=/logs", "--host=0.0.0.0"]
+
+volumes:
+  checkpoints:
+    driver: local
