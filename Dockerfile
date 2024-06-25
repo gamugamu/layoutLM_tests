@@ -3,6 +3,24 @@ FROM tensorflow/tensorflow:2.14.0-gpu
 # Set the working directory in the container
 WORKDIR /app/
 
+# Mettre à jour les packages et installer les dépendances nécessaires
+RUN apt-get update && apt-get install -y \
+    tesseract-ocr \
+    libleptonica-dev \
+    libtesseract-dev \
+    pkg-config \
+    poppler-utils \
+    && apt-get clean
+
+# Vérifiez que tesseract est installé correctement
+RUN which tesseract
+RUN tesseract --version
+
+# Ajoutez tesseract au PATH
+#ENV TESSERACT_PATH="/usr/bin/tesseract"
+#ENV PATH="${TESSERACT_PATH}:${PATH}"
+
+
 # Add requirements.txt and install packages
 ADD requirements.txt /app/
 RUN pip install -r requirements.txt
